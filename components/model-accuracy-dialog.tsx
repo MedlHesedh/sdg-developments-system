@@ -21,7 +21,7 @@ interface ModelAccuracyDialogProps {
   forecastData?: any[]
 }
 
-interface Material {
+interface HistoryItem {
   id: string
   name: string
   cost: number
@@ -39,7 +39,7 @@ export function ModelAccuracyDialog({
 }: ModelAccuracyDialogProps) {
   const [forecastedCost, setForecastedCost] = useState<number | null>(null)
   const [forecastSeries, setForecastSeries] = useState<number[]>([])
-  const [materialHistory, setMaterialHistory] = useState<Material[]>([])
+  const [history, setHistory] = useState<HistoryItem[]>([])
   const [showHistory, setShowHistory] = useState(false)
   const { toast } = useToast()
   const isMobile = useIsMobile()
@@ -62,28 +62,27 @@ export function ModelAccuracyDialog({
         setForecastSeries(forecastData.forecast)
         setForecastedCost(forecastData.forecast[5])
 
-        // Fetch material history if resourceType is material
-        if (resourceType === "material") {
-          const { data, error } = await supabase
-            .from("material_history")
-            .select("*")
-            .eq("material", resource)
-            .order("created_at", { ascending: false })
+        // Fetch history data
+        const tableName = resourceType === "material" ? "material_history" : "labor_history"
+        const { data, error } = await supabase
+          .from(tableName)
+          .select("*")
+          .eq(resourceType === "material" ? "material" : "labor", resource)
+          .order("created_at", { ascending: false })
 
-          if (error) {
-            console.error("Error fetching material history", error)
-            return
-          }
-
-          setMaterialHistory(
-            data.map((item) => ({
-              id: item.id,
-              name: item.material,
-              cost: item.cost ?? 0,
-              date: item.date ?? "N/A",
-            }))
-          )
+        if (error) {
+          console.error(`Error fetching ${resourceType} history`, error)
+          return
         }
+
+        setHistory(
+          data.map((item) => ({
+            id: item.id,
+            name: resourceType === "material" ? item.material : item.labor,
+            cost: item.cost ?? 0,
+            date: item.date ?? "N/A",
+          }))
+        )
       } catch (error) {
         console.error("Error fetching data:", error)
         if (forecastData.length > 0) {
@@ -111,7 +110,7 @@ export function ModelAccuracyDialog({
   }
 
   const formatPrice = (price: number) => {
-    return resourceType === "labor" ? `₱${price.toFixed(2)}/hr` : `₱${price.toFixed(2)}`
+    return resourceType === "labor" ? `₱${price.toFixed(2)}` : `₱${price.toFixed(2)}`
   }
 
   const calculateOverallMetrics = () => {
@@ -165,17 +164,17 @@ export function ModelAccuracyDialog({
       
       exportData.push({}); // Empty row for separation
       
-      // Add material history if available
-      if (resourceType === "material" && materialHistory.length > 0) {
+      // Add history if available
+      if (history.length > 0) {
         exportData.push({
-          "Material History": "Date",
-          "": "Material",
+          [`${resourceType} History`]: "Date",
+          "": resourceType === "material" ? "Material" : "Labor",
           "  ": "Cost"
         });
         
-        materialHistory.forEach(item => {
+        history.forEach(item => {
           exportData.push({
-            "Material History": formatDate(item.date),
+            [`${resourceType} History`]: formatDate(item.date),
             "": item.name,
             "  ": formatPrice(item.cost)
           });
@@ -259,21 +258,17 @@ export function ModelAccuracyDialog({
                       <TableRow className="hover:bg-muted/20 transition-colors">
                         <TableCell className="font-medium">{formatDate(latestData.date)}</TableCell>
                         <TableCell>
-                          {resourceType === "material" ? (
-                            <button 
-                              onClick={() => setShowHistory(!showHistory)}
-                              className="flex items-center gap-1 text-primary hover:underline"
-                            >
-                              View History
-                              {showHistory ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </button>
-                          ) : (
-                            formatPrice(latestData.actualPrice)
-                          )}
+                          <button 
+                            onClick={() => setShowHistory(!showHistory)}
+                            className="flex items-center gap-1 text-primary hover:underline"
+                          >
+                            View History
+                            {showHistory ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
                         </TableCell>
                         <TableCell>{renderError(latestData.errorPercent)}</TableCell>
                         <TableCell>
@@ -284,7 +279,7 @@ export function ModelAccuracyDialog({
                           )}
                         </TableCell>
                       </TableRow>
-                      {showHistory && resourceType === "material" && materialHistory.length > 0 && (
+                      {showHistory && history.length > 0 && (
                         <TableRow className="bg-muted/20">
                           <TableCell colSpan={4} className="p-0">
                             <div className="max-h-60 overflow-y-auto">
@@ -292,12 +287,12 @@ export function ModelAccuracyDialog({
                                 <TableHeader className="bg-muted/30">
                                   <TableRow>
                                     <TableHead className="w-[120px]">Date</TableHead>
-                                    <TableHead>Material</TableHead>
+                                    <TableHead>{resourceType === "material" ? "Material" : "Labor"}</TableHead>
                                     <TableHead className="text-right">Cost</TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                  {materialHistory.map((item) => (
+                                  {history.map((item) => (
                                     <TableRow key={item.id}>
                                       <TableCell className="font-medium">{formatDate(item.date)}</TableCell>
                                       <TableCell>{item.name}</TableCell>
