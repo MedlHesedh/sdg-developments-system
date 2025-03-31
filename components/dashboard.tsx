@@ -450,16 +450,16 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Tabs defaultValue="combined" className="w-full">
+      {/* <Tabs defaultValue="combined" className="w-full">
         <div className="flex justify-between items-center mb-4">
           <TabsList>
             <TabsTrigger value="combined">Combined View</TabsTrigger>
-            {/* <TabsTrigger value="historical">Historical</TabsTrigger>
-            <TabsTrigger value="forecast">Forecast</TabsTrigger> */}
+            <TabsTrigger value="historical">Historical</TabsTrigger>
+            <TabsTrigger value="forecast">Forecast</TabsTrigger>
             <TabsTrigger value="table">Table View</TabsTrigger>
           </TabsList>
 
-          {/* <div className="flex space-x-2">
+          <div className="flex space-x-2">
             <Button
               variant={chartType === "line" ? "default" : "outline"}
               size="sm"
@@ -470,7 +470,7 @@ export default function Dashboard() {
             <Button variant={chartType === "bar" ? "default" : "outline"} size="sm" onClick={() => setChartType("bar")}>
               <BarChart2 className="h-4 w-4" />
             </Button>
-          </div> */}
+          </div>
         </div>
 
         <TabsContent value="combined" className="mt-0">
@@ -552,7 +552,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </Tabs> */}
 
       <ReportDialog
         open={isReportOpen}

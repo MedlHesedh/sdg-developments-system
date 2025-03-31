@@ -1,19 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { DialogFooter } from "@/components/ui/dialog"
+
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Download, Printer } from "lucide-react"
+import { Download } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { PriceChart } from "@/components/price-chart"
 import { exportToPDF } from "@/lib/export-utils"
@@ -24,7 +19,7 @@ interface ReportDialogProps {
   resource: string
   resourceType: string
   historicalData: any[]
-  forecastData: any[]
+  forecastData: any[] // This will now be used as fallback only
 }
 
 export function ReportDialog({
@@ -36,12 +31,48 @@ export function ReportDialog({
   forecastData,
 }: ReportDialogProps) {
   const [isGenerating, setIsGenerating] = useState(false)
+  const [forecastedCost, setForecastedCost] = useState<number | null>(null)
+  const [forecastSeries, setForecastSeries] = useState<number[]>([])
   const { toast } = useToast()
+
+  useEffect(() => {
+    if (!open || !resource || !resourceType) return
+
+    const fetchForecast = async () => {
+      try {
+        const targetDateInMonths = 6
+        const params = new URLSearchParams({
+          type: resourceType.toLowerCase(),
+          name: resource,
+          steps: targetDateInMonths.toString(),
+        })
+
+        const response = await fetch(`https://sdg-arima.onrender.com/predict?${params}`)
+        const data = await response.json()
+        setForecastSeries(data.forecast) // Store the entire forecast series
+        setForecastedCost(data.forecast[5]) // Using the 6th month prediction
+      } catch (error) {
+        console.error("Error fetching forecast:", error)
+        // Fallback to the passed forecastData if API fails
+        if (forecastData.length > 0) {
+          setForecastSeries(forecastData.map((item) => item.price))
+          setForecastedCost(forecastData[forecastData.length - 1].price)
+        } else if (historicalData.length > 0) {
+          // If no forecast data, use historical data's last point
+          setForecastSeries([historicalData[historicalData.length - 1].price])
+          setForecastedCost(historicalData[historicalData.length - 1].price)
+        } else {
+          setForecastSeries([])
+          setForecastedCost(null)
+        }
+      }
+    }
+
+    fetchForecast()
+  }, [open, resource, resourceType, forecastData, historicalData])
 
   const handleGenerateReport = () => {
     setIsGenerating(true)
-
-    // Simulate report generation
     setTimeout(() => {
       setIsGenerating(false)
       toast({
@@ -57,7 +88,10 @@ export function ReportDialog({
         resource,
         resourceType,
         historicalData,
-        forecastData,
+        forecastSeries.map((price, index) => ({
+          date: `Month ${index + 1}`,
+          price,
+        })),
         `${resourceType}-${resource}-report-${new Date().toISOString().split("T")[0]}.pdf`,
       )
       toast({
@@ -73,27 +107,18 @@ export function ReportDialog({
     }
   }
 
-  const handlePrintReport = () => {
-    toast({
-      title: "Print Initiated",
-      description: "Your report is being sent to the printer.",
-    })
-  }
-
-  // Calculate summary statistics
   const calculateStats = () => {
-    if (!historicalData.length || !forecastData.length) return null
-
-    const lastHistorical = historicalData[historicalData.length - 1]?.price || 0
-    const lastForecast = forecastData[forecastData.length - 1]?.price || 0
-    const percentChange = ((lastForecast - lastHistorical) / lastHistorical) * 100
+    if (!historicalData.length || forecastSeries.length === 0 || forecastedCost === null) return null
 
     const historicalAvg = historicalData.reduce((sum, item) => sum + item.price, 0) / historicalData.length
-    const forecastAvg = forecastData.reduce((sum, item) => sum + item.price, 0) / forecastData.length
+    const forecastAvg = forecastSeries.reduce((sum, price) => sum + price, 0) / forecastSeries.length
+
+    // Calculate percentage change between forecast average and historical average
+    const percentChange = ((forecastAvg - historicalAvg) / historicalAvg) * 100
 
     return {
-      lastHistorical,
-      lastForecast,
+      lastHistorical: historicalData[historicalData.length - 1]?.price || 0,
+      lastForecast: forecastedCost,
       percentChange,
       historicalAvg,
       forecastAvg,
@@ -104,7 +129,7 @@ export function ReportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl w-[95vw] overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Price Forecast Report</DialogTitle>
           <DialogDescription>
@@ -114,10 +139,11 @@ export function ReportDialog({
 
         <div className="py-4">
           <Tabs defaultValue="summary">
-            <TabsList className="mb-4">
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              {/* <TabsTrigger value="details">Detailed Analysis</TabsTrigger>
-              <TabsTrigger value="visualization">Visualization</TabsTrigger> */}
+            <TabsList className="mb-4 w-full flex">
+              <TabsTrigger value="summary" className="flex-1">
+                Summary
+              </TabsTrigger>
+              {/* <TabsTrigger value="visualization">Visualization</TabsTrigger> */}
             </TabsList>
 
             <TabsContent value="summary">
@@ -127,44 +153,46 @@ export function ReportDialog({
                 </h3>
 
                 {stats ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-2xl font-bold">
+                      <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
+                        <div className="text-xl sm:text-2xl font-bold">
                           {resourceType === "labor"
-                            ? `$${stats.lastForecast.toFixed(2)}/hr`
-                            : `$${stats.lastForecast.toFixed(2)}`}
+                            ? `₱${stats.lastForecast.toFixed(2)}`
+                            : `₱${stats.lastForecast.toFixed(2)}`}
                         </div>
-                        <div className="text-sm text-muted-foreground">Forecasted Price</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">Forecasted Price</div>
                       </CardContent>
                     </Card>
 
                     <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-2xl font-bold">
+                      <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
+                        <div className="text-xl sm:text-2xl font-bold">
                           {stats.percentChange >= 0 ? "+" : ""}
                           {stats.percentChange.toFixed(2)}%
                         </div>
-                        <div className="text-sm text-muted-foreground">Expected Change</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">Expected Change</div>
                       </CardContent>
                     </Card>
 
                     <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-2xl font-bold">
+                      <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
+                        <div className="text-xl sm:text-2xl font-bold">
                           {resourceType === "labor"
-                            ? `$${stats.forecastAvg.toFixed(2)}/hr`
-                            : `$${stats.forecastAvg.toFixed(2)}`}
+                            ? `₱${stats.forecastAvg.toFixed(2)}`
+                            : `₱${stats.forecastAvg.toFixed(2)}`}
                         </div>
-                        <div className="text-sm text-muted-foreground">Average Forecast</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground">
+                          Average Forecast ({forecastSeries.length} months)
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {[1, 2, 3].map((i) => (
                       <Card key={i}>
-                        <CardContent className="pt-6">
+                        <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
                           <Skeleton className="h-8 w-24 mb-2" />
                           <Skeleton className="h-4 w-32" />
                         </CardContent>
@@ -173,79 +201,19 @@ export function ReportDialog({
                   </div>
                 )}
 
-                <div className="bg-muted p-4 rounded-md">
-                  <h4 className="font-medium mb-2">Analysis</h4>
-                  <p className="text-sm">
+                <div className="bg-muted p-3 sm:p-4 rounded-md">
+                  <h4 className="font-medium mb-2 text-sm sm:text-base">Analysis</h4>
+                  <p className="text-xs sm:text-sm">
                     Based on our ARIMA forecasting model, the price of {resource} {resourceType} is expected to
                     {stats && stats.percentChange >= 0 ? " increase " : " decrease "}
-                    by {stats ? Math.abs(stats.percentChange).toFixed(2) : "0"}% over the forecast period. This trend is
-                    consistent with historical patterns and market conditions.
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="details">
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Detailed Price Analysis</h3>
-
-                <div className="space-y-2">
-                  <h4 className="font-medium">Historical Data Summary</h4>
-                  <ul className="list-disc pl-5 text-sm">
-                    <li>Data points: {historicalData.length}</li>
-                    <li>
-                      Average price:{" "}
-                      {resourceType === "labor"
-                        ? `$${stats?.historicalAvg.toFixed(2)}/hr`
-                        : `$${stats?.historicalAvg.toFixed(2)}`}{" "}
-                      || "N/A"
-                    </li>
-                    <li>
-                      Latest price:{" "}
-                      {resourceType === "labor"
-                        ? `$${stats?.lastHistorical.toFixed(2)}/hr`
-                        : `$${stats?.lastHistorical.toFixed(2)}`}{" "}
-                      || "N/A"
-                    </li>
-                    <li>
-                      Date range: {historicalData[0]?.date || "N/A"} to{" "}
-                      {historicalData[historicalData.length - 1]?.date || "N/A"}
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className="font-medium">Forecast Summary</h4>
-                  <ul className="list-disc pl-5 text-sm">
-                    <li>Forecast period: {forecastData.length} months</li>
-                    <li>
-                      Average forecasted price:{" "}
-                      {resourceType === "labor"
-                        ? `$${stats?.forecastAvg.toFixed(2)}/hr`
-                        : `$${stats?.forecastAvg.toFixed(2)}`}{" "}
-                      || "N/A"
-                    </li>
-                    <li>
-                      Final forecasted price:{" "}
-                      {resourceType === "labor"
-                        ? `$${stats?.lastForecast.toFixed(2)}/hr`
-                        : `$${stats?.lastForecast.toFixed(2)}`}{" "}
-                      || "N/A"
-                    </li>
-                    <li>
-                      Expected change:{" "}
-                      {stats ? (stats.percentChange >= 0 ? "+" : "") + stats.percentChange.toFixed(2) : "N/A"}%
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-muted p-4 rounded-md">
-                  <h4 className="font-medium mb-2">Methodology</h4>
-                  <p className="text-sm">
-                    This forecast was generated using an ARIMA (Autoregressive Integrated Moving Average) model, which
-                    is well-suited for time series forecasting. The model was trained on historical price data and
-                    optimized for accuracy. The confidence interval is set at 95%, indicating a high level of confidence
-                    in the forecast.
+                    by {stats ? Math.abs(stats.percentChange).toFixed(2) : "0"}% over the next {forecastSeries.length}{" "}
+                    months. The average projected price during this period is{" "}
+                    {stats
+                      ? resourceType === "labor"
+                        ? `₱${stats.forecastAvg.toFixed(2)}`
+                        : `₱${stats.forecastAvg.toFixed(2)}`
+                      : "unavailable"}
+                    .
                   </p>
                 </div>
               </div>
@@ -258,22 +226,29 @@ export function ReportDialog({
                 <div className="h-[300px]">
                   <PriceChart
                     historicalData={historicalData}
-                    forecastData={forecastData}
-                    isLoading={false}
+                    forecastData={forecastSeries.map((price, index) => ({
+                      date: `Month ${index + 1}`,
+                      price,
+                    }))}
+                    isLoading={forecastSeries.length === 0}
                     chartType="line"
                     resourceType={resourceType}
                   />
                 </div>
 
-                <div className="bg-muted p-4 rounded-md">
-                  <h4 className="font-medium mb-2">Interpretation</h4>
-                  <p className="text-sm">
-                    The chart above shows historical price data (solid line) and forecasted prices (dashed line) for{" "}
-                    {resource} {resourceType}. The forecast indicates a
+                <div className="bg-muted p-3 sm:p-4 rounded-md">
+                  <h4 className="font-medium mb-2 text-sm sm:text-base">Interpretation</h4>
+                  <p className="text-xs sm:text-sm">
+                    The chart shows historical prices (solid line) and our {forecastSeries.length}-month forecast
+                    (dashed line) for {resource} {resourceType}. The model predicts a
                     {stats && stats.percentChange >= 0 ? " positive " : " negative "}
-                    trend over the next {forecastData.length} months, with an expected
-                    {stats && stats.percentChange >= 0 ? " increase " : " decrease "}
-                    of {stats ? Math.abs(stats.percentChange).toFixed(2) : "0"}%.
+                    trend with an average price of{" "}
+                    {stats
+                      ? resourceType === "labor"
+                        ? `₱${stats.forecastAvg.toFixed(2)}`
+                        : `₱${stats.forecastAvg.toFixed(2)}`
+                      : "unavailable"}{" "}
+                    over the forecast period.
                   </p>
                 </div>
               </div>
@@ -281,18 +256,14 @@ export function ReportDialog({
           </Tabs>
         </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2">
-          <Button onClick={handleGenerateReport} disabled={isGenerating}>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-4">
+          <Button onClick={handleGenerateReport} disabled={isGenerating} className="w-full sm:w-auto">
             {isGenerating ? "Generating..." : "Generate Report"}
           </Button>
-          <Button variant="outline" onClick={handleDownloadReport} disabled={isGenerating}>
+          <Button variant="outline" onClick={handleDownloadReport} disabled={isGenerating} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Download PDF
           </Button>
-          {/* <Button variant="outline" onClick={handlePrintReport} disabled={isGenerating}>
-            <Printer className="mr-2 h-4 w-4" />
-            Print
-          </Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>
