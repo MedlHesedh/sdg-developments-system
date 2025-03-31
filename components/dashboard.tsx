@@ -362,8 +362,8 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols gap-6">
+        {/* <Card>
           <CardHeader>
             <CardTitle>Forecast Range</CardTitle>
             <CardDescription>Adjust the number of months to forecast</CardDescription>
@@ -416,7 +416,7 @@ export default function Dashboard() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
 
         <Card>
           <CardHeader>
