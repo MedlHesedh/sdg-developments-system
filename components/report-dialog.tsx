@@ -260,10 +260,10 @@ export function ReportDialog({
           <Button onClick={handleGenerateReport} disabled={isGenerating} className="w-full sm:w-auto">
             {isGenerating ? "Generating..." : "Generate Report"}
           </Button>
-          <Button variant="outline" onClick={handleDownloadReport} disabled={isGenerating} className="w-full sm:w-auto">
+          {/* <Button variant="outline" onClick={handleDownloadReport} disabled={isGenerating} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Download PDF
-          </Button>
+          </Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>
