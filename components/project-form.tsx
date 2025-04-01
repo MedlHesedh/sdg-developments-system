@@ -63,12 +63,17 @@ const projectSchema = z.object({
 type ProjectFormInputs = z.infer<typeof projectSchema>;
 
 const projectTypes = [
-  "Two-storey Residence",
-  "Two-Storey Apartment with Roofdeck",
-  "Two-storey Residential with Roofdeck",
-  "Three-Storey with Eight Bedrooms Residence",
   "Bungalow",
+  "Two-Storey Residence",
+  "Three-Storey Residence",
+  "Two-Storey Apartment with Roofdeck",
+  "Three-Storey Apartment",
+  "Townhouse",
+  "Duplex",
+  "Commercial Building",
+  "Warehouse",
 ];
+
 
 type ProjectFormProps = {
   project?: {

@@ -320,7 +320,7 @@ export function ModelAccuracyDialog({
             </div>
           </div>
 
-          <div className="flex justify-end mt-4">
+          {/* <div className="flex justify-end mt-4">
             <Button
               onClick={handleExportAccuracy}
               variant="outline"
@@ -329,7 +329,7 @@ export function ModelAccuracyDialog({
               <Download className="mr-2 h-4 w-4" />
               Export Report
             </Button>
-          </div>
+          </div> */}
         </div>
       </DialogContent>
     </Dialog>
