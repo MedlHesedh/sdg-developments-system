@@ -48,7 +48,7 @@ export function ReportDialog({
           steps: targetDateInMonths.toString(),
         })
 
-        const response = await fetch(`https://sdg-arima.onrender.com/predict?${params}`)
+        const response = await fetch(`https://sdg-arima-python.onrender.com/predict?${params}`)
         const data = await response.json()
         setForecastSeries(data.forecast)
         setForecastedCost(data.forecast[5])

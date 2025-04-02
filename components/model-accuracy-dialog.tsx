@@ -57,7 +57,7 @@ export function ModelAccuracyDialog({
           steps: targetDateInMonths.toString(),
         })
 
-        const forecastResponse = await fetch(`https://sdg-arima.onrender.com/predict?${params}`)
+        const forecastResponse = await fetch(`https://sdg-arima-python.onrender.com/predict?${params}`)
         const forecastData = await forecastResponse.json()
         setForecastSeries(forecastData.forecast)
         setForecastedCost(forecastData.forecast[5])
