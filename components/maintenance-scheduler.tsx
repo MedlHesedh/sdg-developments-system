@@ -102,7 +102,7 @@ export function MaintenanceScheduler() {
         if (toolsError) throw toolsError
 
         // Transform the tools data
-        const formattedTools = toolsData.map((tool) => ({
+        const formattedTools = toolsData.map((tool: any) => ({
           id: tool.id,
           name: tool.name,
           serial_numbers: tool.tool_serial_numbers.map((sn: any) => sn.serial_number),
@@ -412,7 +412,7 @@ export function MaintenanceScheduler() {
                   <SelectValue placeholder="Select a tool" />
                 </SelectTrigger>
                 <SelectContent>
-                  {tools.map((tool) => (
+                  {tools.map((tool: any) => (
                     <SelectItem key={tool.id} value={tool.id}>
                       {tool.name}
                     </SelectItem>
@@ -432,7 +432,7 @@ export function MaintenanceScheduler() {
                   <SelectValue placeholder="Select serial number" />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableSerialNumbers.map((serialNumber) => (
+                  {availableSerialNumbers.map((serialNumber: any) => (
                     <SelectItem key={serialNumber} value={serialNumber}>
                       {serialNumber}
                     </SelectItem>
@@ -538,7 +538,7 @@ export function MaintenanceScheduler() {
                   .filter((s) => s.status === "Scheduled" && new Date(s.scheduled_date) >= new Date())
                   .sort((a, b) => new Date(a.scheduled_date).getTime() - new Date(b.scheduled_date).getTime())
                   .slice(0, 3)
-                  .map((schedule) => (
+                  .map((schedule: any) => (
                     <div key={schedule.id} className="flex items-center justify-between p-2 border rounded-md">
                       <div>
                         <div className="font-medium">{schedule.tool_name}</div>
@@ -621,7 +621,7 @@ export function MaintenanceScheduler() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredSchedules.map((schedule) => (
+                filteredSchedules.map((schedule: any) => (
                   <TableRow key={schedule.id}>
                     <TableCell className="font-medium">{schedule.tool_name}</TableCell>
                     <TableCell>{schedule.serial_number}</TableCell>
