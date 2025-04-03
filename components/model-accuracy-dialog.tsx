@@ -157,7 +157,7 @@ export function ModelAccuracyDialog({
         exportData.push({
           "Date": formatDate(latestData.date),
           "Historical Price": formatPrice(latestData.actualPrice),
-          "Error": `${latestData.errorPercent > 0 ? "+" : ""}${latestData.errorPercent.toFixed(2)}%`,
+          // "Error": `${latestData.errorPercent > 0 ? "+" : ""}${latestData.errorPercent.toFixed(2)}%`,
           "Future Forecast": forecastedCost !== null ? formatPrice(forecastedCost) : "N/A"
         });
       }
@@ -219,18 +219,18 @@ export function ModelAccuracyDialog({
         </DialogHeader>
 
         <div className="py-2 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols gap-4">
             <Card className="shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="pt-6 flex flex-col items-center sm:items-start text-center sm:text-left">
                 <div className="text-sm text-muted-foreground">Mean Absolute Percentage Error (MAPE)</div>
                 <div className="text-2xl font-bold mt-1">{metrics.mape.toFixed(2)}%</div>
-                <div className="text-xs text-muted-foreground mt-1 max-w-[250px]">
+                <div className="text-xs text-muted-foreground mt-1 max-w-full">
                   Lower is better. Represents average percentage error.
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
+            {/* <Card className="shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="pt-6 flex flex-col items-center sm:items-start text-center sm:text-left">
                 <div className="text-sm text-muted-foreground">Root Mean Square Error (RMSE)</div>
                 <div className="text-2xl font-bold mt-1">₱{metrics.rmse.toFixed(2)}</div>
@@ -238,7 +238,7 @@ export function ModelAccuracyDialog({
                   Lower is better. Represents magnitude of error.
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           <div className="rounded-md border shadow-sm overflow-hidden">
@@ -248,7 +248,7 @@ export function ModelAccuracyDialog({
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Date</TableHead>
                     <TableHead className="whitespace-nowrap">Historical Price</TableHead>
-                    <TableHead className="whitespace-nowrap">Error</TableHead>
+                    {/* <TableHead className="whitespace-nowrap">Error</TableHead> */}
                     <TableHead className="whitespace-nowrap">Future Forecast</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -270,7 +270,7 @@ export function ModelAccuracyDialog({
                             )}
                           </button>
                         </TableCell>
-                        <TableCell>{renderError(latestData.errorPercent)}</TableCell>
+                        {/* <TableCell>{renderError(latestData.errorPercent)}</TableCell> */}
                         <TableCell>
                           {forecastedCost !== null ? (
                             <span className="font-medium">{formatPrice(forecastedCost)}</span>

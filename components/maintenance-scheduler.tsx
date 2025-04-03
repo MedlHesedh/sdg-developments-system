@@ -74,11 +74,11 @@ export function MaintenanceScheduler() {
         if (schedulesError) throw schedulesError
 
         // Transform the data to match our component's expected format
-        const formattedSchedules = schedulesData.map((schedule) => ({
+        const formattedSchedules = schedulesData.map((schedule: any) => ({
           id: schedule.id,
           tool_id: schedule.tool_id,
-          tool_name: schedule.tools?.[0]?.name || "Unknown Tool",
-          serial_number: schedule.tool_serial_numbers?.[0]?.serial_number || "Unknown",
+          tool_name: schedule.tools?.name || "Unknown Tool",
+          serial_number: schedule.tool_serial_numbers?.serial_number || "Unknown",
           scheduled_date: schedule.scheduled_date,
           maintenance_type: schedule.maintenance_type,
           notes: schedule.notes || "",
@@ -194,11 +194,11 @@ export function MaintenanceScheduler() {
       if (refreshError) throw refreshError
 
       // Transform the refreshed data
-      const formattedSchedules = refreshedData.map((schedule) => ({
+      const formattedSchedules = refreshedData.map((schedule: any) => ({
         id: schedule.id,
         tool_id: schedule.tool_id,
-        tool_name: schedule.tools?.[0]?.name || "Unknown Tool",
-        serial_number: schedule.tool_serial_numbers?.[0]?.serial_number || "Unknown",
+        tool_name: schedule.tools?.name || "Unknown Tool",
+        serial_number: schedule.tool_serial_numbers?.serial_number || "Unknown",
         scheduled_date: schedule.scheduled_date,
         maintenance_type: schedule.maintenance_type,
         notes: schedule.notes || "",
@@ -297,11 +297,11 @@ export function MaintenanceScheduler() {
       if (refreshError) throw refreshError
 
       // Transform the refreshed data
-      const formattedSchedules = refreshedData.map((schedule) => ({
+      const formattedSchedules = refreshedData.map((schedule: any) => ({
         id: schedule.id,
         tool_id: schedule.tool_id,
-        tool_name: schedule.tools?.[0]?.name || "Unknown Tool",
-        serial_number: schedule.tool_serial_numbers?.[0]?.serial_number || "Unknown",
+        tool_name: schedule.tools?.name || "Unknown Tool", 
+        serial_number: schedule.tool_serial_numbers?.serial_number || "Unknown",
         scheduled_date: schedule.scheduled_date,
         maintenance_type: schedule.maintenance_type,
         notes: schedule.notes || "",

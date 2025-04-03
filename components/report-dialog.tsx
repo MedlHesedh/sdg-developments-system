@@ -72,41 +72,41 @@ export function ReportDialog({
 
   const handleGenerateReport = async () => {
     if (!reportRef.current) return;
-    
+
     setIsGenerating(true);
-    
+
     try {
       const canvas = await toCanvas(reportRef.current, {
         backgroundColor: '#ffffff',
         cacheBust: true,
       });
-  
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
-      
+
       // Set margins (10mm on each side)
       const margin = 10;
       const pageWidth = 210 - margin * 2; // A4 width minus margins
       const pageHeight = 297 - margin * 2; // A4 height minus margins
-      
+
       // Calculate dimensions to fit within margins while maintaining aspect ratio
       const imgWidth = pageWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
+
       // Add image with margins
       pdf.addImage(
-        imgData, 
-        'PNG', 
-        margin, 
-        margin, 
-        imgWidth, 
+        imgData,
+        'PNG',
+        margin,
+        margin,
+        imgWidth,
         imgHeight,
         undefined,
         'FAST'
       );
-      
+
       pdf.save(`${resourceType}-${resource}-report-${new Date().toISOString().split('T')[0]}.pdf`);
-      
+
       toast({
         title: "Report Downloaded",
         description: "Your report has been downloaded as PDF.",
@@ -167,7 +167,7 @@ export function ReportDialog({
                   </h3>
 
                   {stats ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
                       <Card>
                         <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
                           <div className="text-xl sm:text-2xl font-bold">
@@ -179,7 +179,7 @@ export function ReportDialog({
                         </CardContent>
                       </Card>
 
-                      <Card>
+                      {/* <Card>
                         <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
                           <div className="text-xl sm:text-2xl font-bold">
                             {stats.percentChange >= 0 ? "+" : ""}
@@ -187,7 +187,7 @@ export function ReportDialog({
                           </div>
                           <div className="text-xs sm:text-sm text-muted-foreground">Expected Change</div>
                         </CardContent>
-                      </Card>
+                      </Card> */}
 
                       <Card>
                         <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
@@ -220,15 +220,15 @@ export function ReportDialog({
                     <p className="text-xs sm:text-sm">
                       Based on our ARIMA forecasting model, the price of {resource} {resourceType} is expected to
                       {stats && stats.percentChange >= 0 ? " increase " : " decrease "}
-                      by {stats ? Math.abs(stats.percentChange).toFixed(2) : "0"}% over the next {forecastSeries.length}{" "}
+                      over the next {forecastSeries.length}{" "}
                       months. The average projected price during this period is{" "}
                       {stats
                         ? resourceType === "labor"
                           ? `₱${stats.forecastAvg.toFixed(2)}`
                           : `₱${stats.forecastAvg.toFixed(2)}`
-                        : "unavailable"}
-                      .
+                        : "unavailable"}.
                     </p>
+
                   </div>
                 </div>
               </TabsContent>
