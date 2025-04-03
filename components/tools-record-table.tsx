@@ -203,21 +203,28 @@ export function ToolsRecordTable() {
         })
         .select();
       if (toolError) throw toolError;
-      const toolId = toolData[0].id;
+
+      const toolId = toolData[0].id; // Get the ID of the newly inserted tool
+
+      // Insert serial numbers with the correct tool_id
       const serialNumbersToInsert = serialNumbers.map((serialNumber) => ({
-        tool_id: toolId,
+        tool_id: toolId, // Use the same tool_id for all serial numbers of this tool
         serial_number: serialNumber,
         status: newTool.status,
       }));
+
       const { error: serialNumberError } = await supabase
         .from("tool_serial_numbers")
         .insert(serialNumbersToInsert);
       if (serialNumberError) throw serialNumberError;
+
+      // Refresh the tools list
       const { data: updatedTools, error: fetchError } = await supabase
         .from("tools")
         .select(`*, tool_serial_numbers(*)`)
         .order("created_at", { ascending: false });
       if (fetchError) throw fetchError;
+
       const formattedTools = updatedTools.map((tool: any) => ({
         id: tool.id,
         name: tool.name,
@@ -229,6 +236,7 @@ export function ToolsRecordTable() {
           (sn: any) => sn.serial_number
         ),
       }));
+
       setTools(formattedTools);
       setNewTool(initialNewTool);
       setIsAddingTool(false);
@@ -253,11 +261,11 @@ export function ToolsRecordTable() {
         .select("id, serial_number")
         .eq("tool_id", selectedTool.id)
         .order("serial_number", { ascending: true });
-      
+
       if (fetchError) throw fetchError;
-  
+
       let updatedSerialNumbers = existingSerialNumbers.map((sn: any) => sn.serial_number);
-  
+
       // Handle quantity changes
       if (selectedTool.quantity !== updatedSerialNumbers.length) {
         if (selectedTool.quantity > updatedSerialNumbers.length) {
@@ -266,7 +274,7 @@ export function ToolsRecordTable() {
           const lastSerial = updatedSerialNumbers[updatedSerialNumbers.length - 1];
           const [prefix, randomPart, lastNum] = lastSerial.split(/(...-)(\d+)/);
           let lastNumber = parseInt(lastNum, 10);
-  
+
           for (let i = 1; i <= additionalQuantity; i++) {
             const numberPart = (lastNumber + i).toString().padStart(3, "0");
             updatedSerialNumbers.push(`${prefix}${randomPart}-${numberPart}`);
@@ -276,7 +284,7 @@ export function ToolsRecordTable() {
           updatedSerialNumbers = updatedSerialNumbers.slice(0, selectedTool.quantity);
         }
       }
-  
+
       // Update the tool in supabase
       const { error: toolError } = await supabase
         .from("tools")
@@ -289,17 +297,17 @@ export function ToolsRecordTable() {
         })
         .eq("id", selectedTool.id);
       if (toolError) throw toolError;
-  
+
       // Find differences between existing and updated serial numbers
       const existingMap = new Map(
         existingSerialNumbers.map((sn: any) => [sn.serial_number, sn.id])
       );
-  
+
       // Find serial numbers to delete
       const toDelete = existingSerialNumbers
         .filter((existing: any) => !updatedSerialNumbers.includes(existing.serial_number))
         .map((sn: any) => sn.id);
-  
+
       // Delete removed serial numbers
       if (toDelete.length > 0) {
         const { error: deleteError } = await supabase
@@ -308,12 +316,12 @@ export function ToolsRecordTable() {
           .in("id", toDelete);
         if (deleteError) throw deleteError;
       }
-  
+
       // Find new serial numbers to add
       const newSerialNumbers = updatedSerialNumbers.filter(
         (sn) => !existingMap.has(sn)
       );
-  
+
       // Add new serial numbers
       if (newSerialNumbers.length > 0) {
         const serialNumbersToInsert = newSerialNumbers.map((serialNumber) => ({
@@ -326,34 +334,34 @@ export function ToolsRecordTable() {
           .insert(serialNumbersToInsert);
         if (insertError) throw insertError;
       }
-  
+
       // Update status of remaining serial numbers
       let query = supabase
         .from("tool_serial_numbers")
         .update({ status: selectedTool.status })
         .eq("tool_id", selectedTool.id);
-  
+
       if (toDelete.length > 0) {
         query = query.not("id", "in", `(${toDelete.join(",")})`);
       }
-  
+
       const { error: updateError } = await query;
       if (updateError) throw updateError;
-  
+
       // Update UI state
-      setTools(prevTools => prevTools.map(tool => 
-        tool.id === selectedTool.id ? 
-        { ...selectedTool, serial_numbers: updatedSerialNumbers } : 
-        tool
+      setTools(prevTools => prevTools.map(tool =>
+        tool.id === selectedTool.id ?
+          { ...selectedTool, serial_numbers: updatedSerialNumbers } :
+          tool
       ));
-  
+
       // Refresh from database
       const { data: updatedTools, error: refreshError } = await supabase
         .from("tools")
         .select(`*, tool_serial_numbers(*)`)
         .order("created_at", { ascending: false });
       if (refreshError) throw refreshError;
-  
+
       const formattedTools = updatedTools.map((tool: any) => ({
         id: tool.id,
         name: tool.name,
@@ -363,7 +371,7 @@ export function ToolsRecordTable() {
         last_maintenance: tool.last_maintenance,
         serial_numbers: tool.tool_serial_numbers.map((sn: any) => sn.serial_number),
       }));
-  
+
       setTools(formattedTools);
       setIsEditingTool(false);
       toast({ title: "Success", description: "Tool information updated" });
@@ -378,7 +386,8 @@ export function ToolsRecordTable() {
   };
 
   const handleShowQRCode = (tool: Tool, serialNumber: string) => {
-    setSelectedTool(tool);
+    // Create a new object to ensure React detects the state change
+    setSelectedTool({ ...tool });
     setSelectedSerialNumber(serialNumber);
     setShowQRCode(true);
   };
@@ -665,9 +674,9 @@ export function ToolsRecordTable() {
                           <div className="flex flex-wrap gap-1">
                             {tool.serial_numbers
                               .slice(0, 2)
-                              .map((serialNumber, index) => (
+                              .map((serialNumber) => (
                                 <Badge
-                                  key={index}
+                                  key={serialNumber}
                                   variant="outline"
                                   className="cursor-pointer"
                                   onClick={() =>
@@ -793,9 +802,9 @@ export function ToolsRecordTable() {
                         <div className="flex flex-wrap gap-1">
                           {tool.serial_numbers
                             .slice(0, 2)
-                            .map((serialNumber, index) => (
+                            .map((serialNumber) => (
                               <Badge
-                                key={index}
+                                key={serialNumber}
                                 variant="outline"
                                 className="cursor-pointer"
                                 onClick={() =>
@@ -843,31 +852,32 @@ export function ToolsRecordTable() {
       <Dialog open={showQRCode} onOpenChange={setShowQRCode}>
         <DialogContent>
           <DialogHeader>
-        <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
-        <DialogDescription>
-          Serial Number: {selectedSerialNumber}
-        </DialogDescription>
+            <DialogTitle>QR Code for {selectedTool?.name}</DialogTitle>
+            <DialogDescription>
+              Serial Number: {selectedSerialNumber}
+            </DialogDescription>
           </DialogHeader>
           <QRCodeGenerator
-        serialNumber={selectedSerialNumber}
-        toolName={selectedTool?.name || ""}
+            serialNumber={selectedSerialNumber}
+            toolName={selectedTool?.name || ""}
           />
           <div className="text-center mt-4">
-        <p className="text-sm text-muted-foreground">
-          Scan this QR code with your phone's camera or a QR code scanner
-          app to access this tool's details.
-        </p>
+            <p className="text-sm text-muted-foreground">
+              Scan this QR code with your phone's camera or a QR code scanner
+              app to access this tool's details.
+            </p>
           </div>
           <div className="text-center mt-4">
-        <Button
-          onClick={() => {
-            if (selectedTool) {
-          window.location.href = `/tools/${selectedTool.id}`;
-            }
-          }}
-        >
-          Go to Tool Details
-        </Button>
+            <Button
+              onClick={() => {
+                if (selectedTool && selectedSerialNumber) {
+                  // Include both tool ID and serial number in the URL
+                  window.location.href = `/tools/${selectedTool.id}?sn=${selectedSerialNumber}`;
+                }
+              }}
+            >
+              Go to Tool Details
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -882,9 +892,9 @@ export function ToolsRecordTable() {
             <DialogDescription>List of Serial Numbers:</DialogDescription>
           </DialogHeader>
           <div className="max-h-60 overflow-y-auto space-y-2">
-            {serialListTool?.serial_numbers.map((sn, index) => (
+            {serialListTool?.serial_numbers.map((sn) => (
               <div
-                key={index}
+                key={sn}
                 className="p-2 border rounded cursor-pointer hover:bg-gray-100"
                 onClick={() => handleShowQRCode(serialListTool as Tool, sn)}
               >

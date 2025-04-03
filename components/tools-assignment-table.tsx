@@ -140,19 +140,19 @@ export function ToolsAssignmentTable({
         if (assignedError) throw assignedError;
 
         const formattedTools = (assignedTools || [])
-          .map((assignment) => {
+          .map((assignment: any) => {
             const toolSerial = assignment.tool_serial_numbers;
             if (!toolSerial) return null;
-            const tool = toolSerial?.[0]?.tools?.[0];
+            const tool = toolSerial.tools;
             if (!tool) return null;
             return {
               id: tool.id,
               name: tool.name,
-              serialNumber: toolSerial[0].serial_number,
-              status: toolSerial[0].status as
-                | "Available"
-                | "Not Available"
-                | "Under Maintenance",
+              serialNumber: toolSerial.serial_number,
+              status: toolSerial.status as
+          | "Available"
+          | "Not Available"
+          | "Under Maintenance",
               assignedDate: assignment.assigned_date,
               returnDate: assignment.return_date,
               assignmentId: assignment.id,

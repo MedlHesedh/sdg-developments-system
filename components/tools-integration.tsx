@@ -144,13 +144,13 @@ export function useToolsIntegration() {
 
       if (error) throw error
 
-      return data.map((schedule) => ({
+      return data.map((schedule: any) => ({
         id: schedule.id,
         scheduledDate: schedule.scheduled_date,
         maintenanceType: schedule.maintenance_type,
         notes: schedule.notes,
         status: schedule.status,
-        serialNumber: schedule.tool_serial_numbers[0].serial_number,
+        serialNumber: (schedule.tool_serial_numbers as any).serial_number,
       }))
     } catch (error) {
       console.error("Error fetching maintenance schedule:", error)
