@@ -13,6 +13,7 @@ import { ForecastChart } from "@/components/forecast-chart"
 import { ReportDialog } from "@/components/report-dialog"
 import { TrainingDialog } from "@/components/training-dialog"
 import { ModelAccuracyDialog } from "@/components/model-accuracy-dialog"
+import { ForecastAccuracyChart } from "@/components/forecast-accuracy-chart"
 import { ForecastTable } from "@/components/forecast-table"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -34,7 +35,7 @@ import { supabase } from "@/utils/supabase/client";
 
 export default function Dashboard() {
   // Resource type and selection state
-  const [resourceType, setResourceType] = useState<"material" | "labor" >("material");
+  const [resourceType, setResourceType] = useState<"material" | "labor">("material");
   const [selectedResource, setSelectedResource] = useState<string>("")
   const [resourceOptions, setResourceOptions] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState<string>("")
@@ -85,7 +86,7 @@ export default function Dashboard() {
     created_at?: string;
     updated_at?: string;
   };
-  
+
   type MaterialData = {
     id: string;
     material: string;
@@ -95,20 +96,20 @@ export default function Dashboard() {
     created_at?: string;
     updated_at?: string;
   };
-  
+
   function useResourceSelector(resourceType: "Labor" | "Material") {
     const [labors, setLabors] = useState<LaborData[]>([]);
     const [materials, setMaterials] = useState<MaterialData[]>([]);
     const [selectedResource, setSelectedResource] = useState("");
     const [isOpen, setIsOpen] = useState(false);
-  
+
     // Fetch data para sa workers at supplies
     useEffect(() => {
       const fetchResources = async () => {
         if (resourceType === "Labor") {
           const { data: laborData, error: laborError } = await supabase
-          .from("labor_adding")
-          .select("id, labor, category, quantity, cost, created_at, updated_at");
+            .from("labor_adding")
+            .select("id, labor, category, quantity, cost, created_at, updated_at");
           if (laborError) {
             console.error("Error fetching workers:", laborError);
           } else {
@@ -116,8 +117,8 @@ export default function Dashboard() {
           }
         } else {
           const { data: materialData, error: materialError } = await supabase
-          .from("material_adding")
-          .select("id, material, unit, quantity, cost, created_at, updated_at");
+            .from("material_adding")
+            .select("id, material, unit, quantity, cost, created_at, updated_at");
           if (materialError) {
             console.error("Error fetching supplies:", materialError);
           } else {
@@ -125,37 +126,37 @@ export default function Dashboard() {
           }
         }
       };
-  
+
       fetchResources();
     }, [resourceType]);
-  
+
     // I-map ang data sa options
     const laborOptions = labors.map((lab) => ({
       key: lab.id,
       value: `${lab.labor}`
     }));
-  
+
     const materialOptions = materials.map((mat) => ({
       key: mat.id,
       value: `${mat.material} `
     }));
-  
+
     const options = resourceType === "Labor" ? laborOptions : materialOptions;
-  
+
     // Handle selection ng resource
     const handleSelect = (value: string) => {
       setSelectedResource(value);
       setIsOpen(false);
       return value; // I-return ang selected value para magamit sa parent component
     };
-  
+
     return {
       options,
       selectedResource,
       handleSelect,
     };
   }
-  
+
   useEffect(() => {
     setIsLoadingResources(true)
     setSelectedResource("")
@@ -165,7 +166,7 @@ export default function Dashboard() {
         const options = resourceType === "material" ? await fetchResources("material") : await fetchResources("labor")
 
         setResourceOptions(options)
-        if (options.length > 0 ) {
+        if (options.length > 0) {
           setSelectedResource(options[0])
         }
       } catch (error) {
@@ -186,7 +187,7 @@ export default function Dashboard() {
   // Load data when resource selection changes
   useEffect(() => {
     if (!selectedResource) return;
-  
+
     const loadData = async () => {
       setIsLoadingData(true);
       try {
@@ -195,11 +196,11 @@ export default function Dashboard() {
           fetchForecastData(resourceType, selectedResource, forecastMonths),
           fetchModelAccuracy(resourceType, selectedResource),
         ]);
-  
+
         console.log("Fetched historical data:", historical);
         console.log("Fetched forecast data:", forecast);
         console.log("Fetched accuracy data:", accuracy);
-  
+
         setHistoricalData(historical);
         setForecastData(forecast);
         setAccuracyData(accuracy);
@@ -215,10 +216,10 @@ export default function Dashboard() {
         setIsLoading(false);
       }
     };
-  
+
     loadData();
   }, [selectedResource, forecastMonths, resourceType, toast]);
-  
+
 
   // Filter resources based on search query
   const filteredResources = resourceOptions.filter((resource) =>
@@ -322,14 +323,14 @@ export default function Dashboard() {
             </RadioGroup>
 
             <div className="space-y-2">
-              <Label htmlFor="resource-search">Search {resourceType }</Label>
+              <Label htmlFor="resource-search">Search {resourceType}</Label>
               <Select
                 value={selectedResource}
                 onValueChange={setSelectedResource}
                 disabled={isLoadingResources || filteredResources.length === 0}
               >
                 <SelectTrigger className="mt-2">
-                <SelectValue placeholder={`Select ${resourceType === "labor" ? "labor..." : "material..."}`} />
+                  <SelectValue placeholder={`Select ${resourceType === "labor" ? "labor..." : "material..."}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {/* Search Input inside SelectContent */}
@@ -358,7 +359,7 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
             </div>
-          </div>  
+          </div>
         </CardContent>
       </Card>
 
@@ -449,6 +450,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {!isLoadingData && selectedResource && (
+        <ForecastAccuracyChart
+          resourceType={resourceType}
+          resource={selectedResource}
+          onViewAccuracyDetails={() => setIsAccuracyOpen(true)}
+        />
+      )}
 
       {/* <Tabs defaultValue="combined" className="w-full">
         <div className="flex justify-between items-center mb-4">
