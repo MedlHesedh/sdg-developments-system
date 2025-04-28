@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar"; // Ensure correct path
 import { SidebarProvider } from "@/components/ui/sidebar"; // Ensure correct path
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProvider, SignedIn } from '@clerk/nextjs';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +31,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SidebarProvider>
             <div className="flex h-screen w-full">
               {/* Sidebar */}
-              <AppSidebar />
+                <ClerkProvider>
+                <SignedIn>
+                  <AppSidebar />
+                </SignedIn>
+                </ClerkProvider>
 
               {/* Main Content */}
               <main className="flex-1 p-4 overflow-auto">

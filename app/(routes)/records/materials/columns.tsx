@@ -92,18 +92,18 @@ export const columns: ColumnDef<Material>[] = [
       }`;
     },
   },
-  {
-    accessorKey: "total_cost",
-    header: "Total Cost",
-    cell: ({ row }) => {
-      const totalCost = row.original.total_cost;
-      return `₱${
-        totalCost !== null && totalCost !== undefined
-          ? totalCost.toFixed(2)
-          : "0.00"
-      }`;
-    },
-  },
+  // {
+  //   accessorKey: "total_cost",
+  //   header: "Total Cost",
+  //   cell: ({ row }) => {
+  //     const totalCost = row.original.total_cost;
+  //     return `₱${
+  //       totalCost !== null && totalCost !== undefined
+  //         ? totalCost.toFixed(2)
+  //         : "0.00"
+  //     }`;
+  //   },
+  // },
   {
     accessorKey: "created_at",
     header: "Date Added",

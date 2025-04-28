@@ -74,7 +74,7 @@ const data = {
       url: "#",
       icon: Map,
       items: [
-        { title: "Project Dashboard", url: "/" },
+        { title: "Project Dashboard", url: "/projects" },
         { title: "Create Project Plan", url: "/projects/new" },
       ],
     },

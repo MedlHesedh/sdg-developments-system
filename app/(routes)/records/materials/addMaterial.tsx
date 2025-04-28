@@ -40,7 +40,7 @@ const formSchema = z.object({
   material: z.string().min(1, "Material name is required"),
   unit: z.string().min(1, "Unit is required"),
   category: z.string().min(1, "Category is required"),
-  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  // quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   cost: z.coerce
     .number()
     .refine((value) => /^\d+(\.\d{2})$/.test(value.toFixed(2)), {
@@ -63,7 +63,7 @@ export default function AddMaterial({
       material: "",
       unit: "",
       category: "",
-      quantity: 1,
+      // quantity: 1,
       cost: 0.0,
     },
   });
@@ -72,14 +72,14 @@ export default function AddMaterial({
     setLoader(true);
     try {
       const now = new Date().toISOString();
-      const total_cost = parseFloat((values.cost * values.quantity).toFixed(2));
+      // const total_cost = parseFloat((values.cost * values.quantity).toFixed(2));
 
       const { data, error } = await supabase
         .from("material_adding")
         .insert([
           {
             ...values,
-            total_cost,
+            // total_cost,
             created_at: now,
             updated_at: now,
           },
@@ -228,7 +228,7 @@ export default function AddMaterial({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
+          {/* <FormField
             control={form.control}
             name="quantity"
             render={({ field }) => (
@@ -250,7 +250,7 @@ export default function AddMaterial({
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           <FormField
             control={form.control}
