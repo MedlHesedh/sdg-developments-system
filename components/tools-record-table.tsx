@@ -556,7 +556,7 @@ export function ToolsRecordTable() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="tool-maintenance">
                     Last Maintenance Date
                   </Label>
@@ -572,7 +572,7 @@ export function ToolsRecordTable() {
                     }
                     disabled={isSubmitting}
                   />
-                </div>
+                </div> */}
                 {newTool.status === "Under Maintenance" && (
                   <div className="space-y-2">
                     <Label htmlFor="tool-notes">Condition Notes</Label>
@@ -630,7 +630,7 @@ export function ToolsRecordTable() {
                     <TableHead>Tool Name</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Last Maintenance</TableHead>
+                    {/* <TableHead>Last Maintenance</TableHead> */}
                     <TableHead>Serial Numbers</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -667,9 +667,9 @@ export function ToolsRecordTable() {
                             {tool.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           {formatDate(tool.last_maintenance)}
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {tool.serial_numbers
