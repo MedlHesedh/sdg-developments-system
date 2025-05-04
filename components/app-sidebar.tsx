@@ -126,7 +126,7 @@ const data = {
       icon: ViewIcon,
       items: [
         { title: "View Projects", url: "https://sdg-development.vercel.app/" },
-        // { title: "Project Planning Reports", url: "#" },
+        { title: "Project Templates", url: "https://sdg-template.vercel.app/" },
       ],
     },
     // {
