@@ -121,7 +121,7 @@ const data = {
   ],
   projects: [
     {
-      name: "Project Viewing",
+      name: "Project Apps",
       url: "#",
       icon: ViewIcon,
       items: [
