@@ -127,6 +127,7 @@ const data = {
       items: [
         { title: "View Projects", url: "https://sdg-development.vercel.app/" },
         { title: "Project Templates", url: "https://sdg-template.vercel.app/" },
+        { title: "Floor Plan Designer", url: "https://floor-plan-designer-six.vercel.app/" },
       ],
     },
     // {
